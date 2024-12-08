@@ -171,6 +171,11 @@ def genererCAC(prenom):
     CAC = f"{lettre}{random.randint(10, 99)}"
     return CAC
 
+def generer_num_client_incremental():
+    global dernier_num_client
+    dernier_num_client += 1
+    return str(dernier_num_client).zfill(8)  # Retourne un numéro de 8 chiffres
+
 def exporter_donnees():
     # Exporte les données des produits, clients et paniers vers des fichiers CSV
     with open('produit.csv', mode='w', newline='', encoding='utf-8') as file:
