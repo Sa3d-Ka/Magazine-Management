@@ -57,11 +57,9 @@ def SupprimerProduit(codeP):
 
 def AjouterClient(prenom):
     # Ajoute un nouveau client avec un identifiant unique généré
-    numCl = input("Entrer le numéro de client: ")
-    if numCl in client:
-        print("Erreur : Ce numéro de client existe déjà.")
-        return
-    CAC = genererCAC(prenom)  
+    global client
+    numCl = generer_num_client_incremental()
+    CAC = genererCAC(prenom)
     client[numCl] = CAC
     print(f"Le Client {prenom} ajouté avec succès!")
     print(f"Numéro Client: {numCl}")
