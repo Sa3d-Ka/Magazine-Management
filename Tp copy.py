@@ -234,6 +234,22 @@ def charger_donnees():
     except FileNotFoundError:
         print("Fichier pannier.csv introuvable. Les données des paniers sont vides.")
 
+dernier_num_client = 0
+
+def charger_clients():
+    global dernier_num_client
+    try:
+        with open('client.csv', mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            next(reader)  # Ignore l'en-tête
+            for row in reader:
+                numCl = int(row[0])  # Premier champ : numéro de client
+                dernier_num_client = max(dernier_num_client, numCl)
+    except FileNotFoundError:
+        print("Aucun fichier client.csv trouvé, création d'un nouveau fichier...")
+    except Exception as e:
+        print(f"Erreur lors du chargement des clients : {e}")
+
 def menu_gerant():
     # Affiche le menu pour le gérant et permet de choisir une option
     while True:
