@@ -1,90 +1,94 @@
 import random
 import csv
+import json
 
 
-# Dictionnaires pour stocker les produits, clients, paniers et relations clients-produits
-produit = {}
-client = {}
-pannier = {}
+# Dictionnaires pour stocker les produits, clients, et leurs paniers
+produit = {}  # produit = {codeP: {"Nom": ..., "Prix": ..., "Quantite": ...}}
+client = {}   # client = {CAC: {"N° Client": ..., "Panier": {codeP: {"Quantite": ...}}}}\
+ventes = {}  # ventes = {codeP: quantiteVendu}
+
+dernier_code_produit = 0  # Dernier code produit utilisé
+dernier_num_client = 0    # Dernier numéro client incrémental
+
 
 # Les fonctionnalités du gérant
 
 def AjouterProduit():
-    # Demande d'informations pour un nouveau produit et ajout au dictionnaire
+    """Ajoute un nouveau produit."""
     global dernier_code_produit
 
-    # Génère un nouveau code produit
     dernier_code_produit += 1
     codeP = dernier_code_produit
 
-    nom = input("Entrer le nom du produit: ")
-    prix = float(input("Entrer le prix du produit: "))
-    quantite = int(input("Entrer la quantité du produit: "))
-    
-    produit[codeP] = {
-        "Nom": nom,
-        "Prix": prix,
-        "Quantite": quantite,
-    }
-    print(f"\nProduit {nom} ajouté avec succès!")
+    nom = input("Entrez le nom du produit : ").strip()
+    while True:
+        try:
+            prix = float(input("Entrez le prix du produit : "))
+            quantite = int(input("Entrez la quantité du produit : "))
+            break
+        except ValueError:
+            print("Veuillez entrer des valeurs numériques valides pour le prix et la quantité.")
+
+    produit[codeP] = {"Nom": nom, "Prix": prix, "Quantite": quantite}
+    print(f"\nProduit {nom} ajouté avec succès sous le code {codeP}.")
 
 def ModifierQuantiteProduit(codeP):
-    # Modifie la quantité d'un produit en stock
+    """Modifie la quantité d'un produit."""
     if codeP not in produit:
-        print("Le produit n'existe pas.")
+        print("Produit introuvable.")
         return
 
     print("\n1. Ajouter quantité")
     print("2. Retirer quantité")
-    choix = input("Entrez votre choix: ")
+    choix = input("Entrez votre choix : ")
 
-    if choix == '1':
-        quantite = int(input("\nEntrez la quantité à ajouter: "))
-        produit[codeP]['Quantite'] += quantite
-        print(f"\nQuantité ajoutée avec succès! Nouvelle quantité: {produit[codeP]['Quantite']}")
-    elif choix == '2':
-        quantite = int(input("\nEntrez la quantité à retirer: "))
-        if produit[codeP]['Quantite'] >= quantite:
-            produit[codeP]['Quantite'] -= quantite
-            print(f"\nQuantité retirée avec succès! Nouvelle quantité: {produit[codeP]['Quantite']}")
+    try:
+        quantite = int(input("Entrez la quantité : "))
+        if choix == '1':
+            produit[codeP]['Quantite'] += quantite
+            print(f"Quantité mise à jour : {produit[codeP]['Quantite']}.")
+        elif choix == '2':
+            if produit[codeP]['Quantite'] >= quantite:
+                produit[codeP]['Quantite'] -= quantite
+                print(f"Quantité mise à jour : {produit[codeP]['Quantite']}.")
+            else:
+                print("Erreur : Quantité insuffisante en stock.")
         else:
-            print("\nErreur : La quantité à retirer dépasse la quantité disponible.")
-    else:
-        print("\nChoix invalide.")
+            print("Choix invalide.")
+    except ValueError:
+        print("Veuillez entrer une valeur numérique valide pour la quantité.")
 
 def SupprimerProduit(codeP):
-    # Supprime un produit du stock
+    """Supprime un produit."""
     if codeP not in produit:
-        print("Le produit n'existe pas.")
+        print("Produit introuvable.")
         return
-    print(f"Produit {produit[codeP]['Nom']} supprimé avec succès!\n")
+    print(f"Produit {produit[codeP]['Nom']} supprimé avec succès.")
     del produit[codeP]
 
 def AjouterClient(prenom):
-    # Ajoute un nouveau client avec un identifiant unique généré
-    global client
-    numCl = generer_num_client_incremental()
+    """Ajoute un nouveau client."""
+    global dernier_num_client
     CAC = genererCAC(prenom)
-    client[numCl] = CAC
-    print(f"Le Client {prenom} ajouté avec succès!")
-    print(f"Numéro Client: {numCl}")
-    print(f"CAC: {CAC}")
+    dernier_num_client += 1
+    client[CAC] = {"N° Client": dernier_num_client, "Panier": {}}
+    print(f"Client ajouté : {prenom}, CAC : {CAC}, N° Client : {dernier_num_client}.")
 
-def SupprimerClient(numCl):
-    # Supprime un client de la liste
-    if numCl not in client:
-        print("Le client n'existe pas.\n")
+def SupprimerClient(CAC):
+    """Supprime un client."""
+    if CAC not in client:
+        print("Client introuvable.")
         return
-    del client[numCl]
-    print("Client supprimé avec succès!\n")
+    print(f"Client {CAC} supprimé avec succès.")
+    del client[CAC]
 
 def AfficherQuantite(codeP):
-    # Affiche la quantité disponible d'un produit
+    """Affiche la quantité d'un produit."""
     if codeP not in produit:
-        print("Le Produit n'existe pas.\n")
+        print("Produit introuvable.")
         return
-    quantite = produit[codeP]['Quantite']
-    print(f"La quantite du produit avec le codeP {codeP} est: {quantite}")
+    print(f"Quantité du produit {produit[codeP]['Nom']} : {produit[codeP]['Quantite']}.")
 
 
 
@@ -93,162 +97,107 @@ def AfficherQuantite(codeP):
 
 
 def AfficherInformationProduit():
-    # Affiche tous les produits disponibles
-    print("\nProduits actuellement en stock:")
+    """Affiche la liste des produits."""
+    print("\nProduits disponibles :")
     if not produit:
-        print("Aucun produit n'est disponible pour le moment.")
-        return
-
-    for codeP, details in produit.items():
-        nom = details.get("Nom", "N/A")
-        prix = details.get("Prix", "N/A")
-        quantite = details.get("Quantite", "N/A")
-        print(f"Code Produit: {codeP}, Nom: {nom}, Prix: {prix} MAD, Quantité: {quantite}")
-
-def AjouterPannier(CAC):
-    # Permet au client d'ajouter un produit à son panier
-    codeP = input("Entrer le code produit: ")
-    if codeP not in produit:
-        print("Le produit n'existe pas.\n")
-        return
-    quantiteS = int(input("La quantité souhaitée: "))
-    if produit[codeP]['Quantite'] < quantiteS:
-        print("\nErreur : Quantité demandée dépasse le stock disponible.")
-        return
-    
-    nom = produit[codeP]['Nom']
-    prix = produit[codeP]['Prix']
-
-    pannier[CAC] = {
-        "Nom": nom,
-        "Code produit": codeP,
-        "Prix": prix,
-        "QuantiteS": quantiteS,
-    }
-    print(f"\nProduit {nom} ajouté au pannier avec succès!")
-
-    # Réduit la quantité de produit en stock après l'ajout au panier
-    produit[codeP]['Quantite'] -= quantiteS
-    exporter_donnees_pannier()
-
-def RetirerPannier(CAC):
-    # Permet au client de retirer un produit de son panier
-    if CAC not in pannier:
-        print("Erreur : Aucun achat trouvé pour ce CAC.")
-        return
-
-    codeP = pannier[CAC]['Code produit']
-    quantiteR = int(input("\nEntrez la quantité à retirer: "))
-
-    if pannier[CAC]['QuantiteS'] >= quantiteR:
-        pannier[CAC]['QuantiteS'] -= quantiteR
-        produit[codeP]['Quantite'] += quantiteR
-
-        print(f"\nQuantité retirée avec succès! Nouvelle quantité dans le panier: {pannier[CAC]['QuantiteS']}")
-
-        if pannier[CAC]['QuantiteS'] == 0:
-            del pannier[CAC]
-            print("\nProduit retiré du panier car la quantité est maintenant zéro.")
+        print("Aucun produit en stock.")
     else:
-        print("\nErreur : La quantité à retirer dépasse la quantité dans le panier.")
-    exporter_donnees_pannier()
+        for codeP, details in produit.items():
+            print(f"Code : {codeP}, Nom : {details['Nom']}, Prix : {details['Prix']} MAD, Quantité : {details['Quantite']}")
 
-def Achat(CAC):
-    # Permet au client d'acheter les produits dans son panier
-    if CAC not in pannier:
-            print("Erreur : Aucun achat trouvé pour ce CAC.")
+def AjouterPanier(CAC):
+    """Ajoute un produit au panier du client."""
+    codeP = int(input("Entrez le code du produit à ajouter : "))
+    if codeP not in produit:
+        print("Produit introuvable.")
+        return
+
+    try:
+        quantite = int(input("Entrez la quantité à ajouter : "))
+        if produit[codeP]['Quantite'] < quantite:
+            print("Quantité insuffisante en stock.")
             return
 
-    client_info = pannier[CAC]
-    total = client_info["Prix"] * client_info["QuantiteS"]
+        panier = client[CAC]['Panier']
+        if codeP in panier:
+            panier[codeP]['Quantite'] += quantite
+        else:
+            panier[codeP] = {"Quantite": quantite}
+        produit[codeP]['Quantite'] -= quantite
 
-    print("\n========== Reçu ==========")
-    print(f"Nom du Produit: {client_info['Nom']}")
-    print(f"Code Produit: {client_info['Code produit']}")
-    print(f"Prix Unitaire: {client_info['Prix']:.2f} MAD")
-    print(f"Quantité: {client_info['QuantiteS']}")
-    print(f"Total: {total:.2f} MAD")
-    print("==========================\n")
-    del pannier[CAC]
-    exporter_donnees_pannier()
+        print(f"{quantite} unité(s) du produit {produit[codeP]['Nom']} ajoutée(s) au panier.")
+    except ValueError:
+        print("Veuillez entrer une quantité valide.")
+
+
+def RetirerPanier(CAC):
+    """Retire un produit du panier du client."""
+    codeP = int(input("Entrez le code du produit à retirer : "))
+    panier = client[CAC]['Panier']
+
+    if codeP not in panier:
+        print("Produit introuvable dans le panier.")
+        return
+
+    try:
+        quantite = int(input("Entrez la quantité à retirer : "))
+        if panier[codeP]['Quantite'] <= quantite:
+            produit[codeP]['Quantite'] += panier[codeP]['Quantite']
+            del panier[codeP]
+            print("Produit retiré du panier.")
+        else:
+            panier[codeP]['Quantite'] -= quantite
+            produit[codeP]['Quantite'] += quantite
+            print("Quantité mise à jour dans le panier.")
+    except ValueError:
+        print("Veuillez entrer une quantité valide.")
+
+
+def Achat(CAC):
+    """Génère et affiche un reçu pour les achats effectués par un client."""
+    panier = client[CAC]['Panier']
+    print(f"\nReçu d'achat pour le client {CAC} :")
+
+    if not panier:
+        print("Le panier est vide. Aucun achat à traiter.")
+    else:
+        total = 0
+        print("\n========== Reçu ==========")
+        for codeP, details in panier.items():
+            quantite = details['Quantite']  # Extraire la quantité du produit
+            prix_unitaire = produit[codeP]['Prix']
+            sous_total = prix_unitaire * quantite
+            total += sous_total
+            print(f"Produit : {produit[codeP]['Nom']}")
+            print(f"  Quantité : {quantite}")
+            print(f"  Prix Unitaire : {prix_unitaire:.2f} MAD")
+            print(f"  Sous-total : {sous_total:.2f} MAD\n")
+
+            # Mise à jour de la quantité vendue pour le produit dans le dictionnaire ventes
+            if codeP in ventes:
+                ventes[codeP] += quantite
+            else:
+                ventes[codeP] = quantite
+
+        print(f"Montant total : {total:.2f} MAD")
+        print("==========================")
+        
+        # Enregistrer les données dans le fichier JSON
+        EcrireFichierCSV()
+
+        # Vider le panier après l'achat
+        client[CAC]['Panier'] = {}
+        print("\nMerci pour votre achat ! Le panier a été vidé.")
+
+
 
 def genererCAC(prenom):
-    # Génère un code client unique à partir du prénom
-    lettre = prenom[:2].upper()
-    CAC = f"{lettre}{random.randint(10, 99)}"
-    return CAC
+    return prenom[:2].upper() + str(random.randint(10, 99))
 
 def generer_num_client_incremental():
     global dernier_num_client
     dernier_num_client += 1
     return str(dernier_num_client).zfill(8)  # Retourne un numéro de 8 chiffres
-
-def exporter_donnees():
-    # Exporte les données des produits, clients et paniers vers des fichiers CSV
-    with open('produit.csv', mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['CodeP', 'Nom', 'Prix', 'Quantite'])
-        for codeP, details in produit.items():
-            writer.writerow([codeP, details['Nom'], details['Prix'], details['Quantite']])
-    print("Les données des produits ont été exportées avec succès.")
-    
-    with open('client.csv', mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Numéro Client', 'CAC'])
-        for numCl, CAC in client.items():
-            writer.writerow([numCl, CAC])
-    print("Les données des clients ont été exportées avec succès.")
-
-def exporter_donnees_pannier():
-    # Exporte les données des paniers vers des fichiers CSV
-    with open('pannier.csv', mode='w', newline='', encoding='utf-8') as file:
-        writer = csv.writer(file)
-        writer.writerow(['CAC', 'Nom', 'Code Produit', 'Prix', 'QuantiteS'])
-        for CAC, details in pannier.items():
-            writer.writerow([CAC, details['Nom'], details['Code produit'], details['Prix'], details['QuantiteS']])
-    print("Les données du pannier ont été exportées avec succès.")
-
-def charger_donnees():
-    # Charge les données des produits à partir d'un fichier CSV
-    try:
-        with open('produit.csv', mode='r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                produit[row['CodeP']] = {
-                    "Nom": row['Nom'],
-                    "Prix": float(row['Prix']),
-                    "Quantite": int(row['Quantite']),
-                }
-        print("Les données des produits ont été chargées avec succès.")
-    except FileNotFoundError:
-        print("Fichier produit.csv introuvable. Les données des produits sont vides.")
-
-    # Charge les données des clients à partir d'un fichier CSV
-    try:
-        with open('client.csv', mode='r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                client[row['Numéro Client']] = row['CAC']
-        print("Les données des clients ont été chargées avec succès.")
-    except FileNotFoundError:
-        print("Fichier client.csv introuvable. Les données des clients sont vides.")
-
-    # Charge les données des paniers à partir d'un fichier CSV
-    try:
-        with open('pannier.csv', mode='r', encoding='utf-8') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                pannier[row['CAC']] = {
-                    "Nom": row['Nom'],
-                    "Code produit": row['Code Produit'],
-                    "Prix": float(row['Prix']),
-                    "QuantiteS": int(row['QuantiteS']),
-                }
-        print("Les données des paniers ont été chargées avec succès.")
-    except FileNotFoundError:
-        print("Fichier pannier.csv introuvable. Les données des paniers sont vides.")
-
-dernier_num_client = 0
 
 def charger_clients():
     global dernier_num_client
@@ -264,7 +213,6 @@ def charger_clients():
     except Exception as e:
         print(f"Erreur lors du chargement des clients : {e}")
 
-dernier_code_produit = 0  # Dernier code produit utilisé (incrémental)
 
 def charger_produits():
     """Charge les produits depuis un fichier CSV et met à jour le dernier code produit."""
@@ -284,6 +232,116 @@ def charger_produits():
         print("Produits chargés avec succès.")
     except FileNotFoundError:
         print("Fichier produit.csv introuvable. Démarrage avec une liste vide.")
+
+def exporter_donnees():
+    """Exporte les données des produits et des clients dans des fichiers CSV."""
+    try:
+        # Export des produits
+        with open("produits.csv", mode="w", newline="", encoding="utf-8") as fichier_produits:
+            writer = csv.writer(fichier_produits)
+            # Écrire les en-têtes
+            writer.writerow(["Code Produit", "Nom", "Prix (MAD)", "Quantité"])
+            # Écrire les données des produits
+            for codeP, details in produit.items():
+                writer.writerow([codeP, details["Nom"], details["Prix"], details["Quantite"]])
+        print("Données des produits exportées avec succès dans 'produits.csv'.")
+
+        # Export des clients (sans panier)
+        with open("clients.csv", mode="w", newline="", encoding="utf-8") as fichier_clients:
+            writer = csv.writer(fichier_clients)
+            # Écrire les en-têtes
+            writer.writerow(["CAC", "N° Client"])
+            # Écrire les données des clients
+            for CAC, details in client.items():
+                writer.writerow([CAC, details["N° Client"]])
+        print("Données des clients exportées avec succès dans 'clients.csv'.")
+
+    except Exception as e:
+        print(f"Erreur lors de l'exportation des données : {e}")
+
+
+def charger_donnees():
+    """Charge les données des produits et des clients à partir de fichiers CSV, sans panier."""
+    try:
+        # Chargement des produits depuis le fichier CSV
+        with open('produits.csv', mode='r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            next(reader)  # Ignorer l'en-tête
+            for row in reader:
+                codeP, nom, prix, quantite = row
+                produit[int(codeP)] = {
+                    "Nom": nom,
+                    "Prix": float(prix),
+                    "Quantite": int(quantite)
+                }
+        print("Les produits ont été chargés avec succès depuis 'produits.csv'.")
+    except FileNotFoundError:
+        print("Fichier 'produits.csv' introuvable. Démarrage avec une liste vide de produits.")
+    except Exception as e:
+        print(f"Erreur lors du chargement des produits : {e}")
+    
+    try:
+        # Chargement des clients depuis le fichier CSV
+        with open('clients.csv', mode='r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            next(reader)  # Ignorer l'en-tête
+            for row in reader:
+                CAC, numCl = row
+                client[CAC] = {
+                    "N° Client": numCl,
+                    "Panier": {}  # Initialiser un panier vide pour chaque client
+                }
+        print("Les clients ont été chargés avec succès depuis 'clients.csv'.")
+    except FileNotFoundError:
+        print("Fichier 'clients.csv' introuvable. Démarrage avec une liste vide de clients.")
+    except Exception as e:
+        print(f"Erreur lors du chargement des clients : {e}")
+
+
+
+def EcrireFichierCSV():
+    """Enregistre les données des ventes dans un fichier CSV."""
+    with open('ventes.csv', mode='w', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        
+        # Write header row if file is empty
+        writer.writerow(['Code Produit', 'Nom Produit', 'Quantité Vendu'])
+
+        for codeP, quantite in ventes.items():
+            # Getting product name from produit dictionary
+            nom_produit = produit[codeP]['Nom']
+            # Write product data
+            writer.writerow([codeP, nom_produit, quantite])
+
+    print("Les données des ventes ont été enregistrées dans 'ventes.csv'.")
+
+
+
+def charger_FichierCSV():
+    """Charge les données des ventes depuis un fichier CSV."""
+    try:
+        with open('ventes.csv', mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            
+            # Skip the header
+            next(reader)
+
+            # Clear the existing ventes data before loading new data
+            ventes.clear()
+
+            # Read and load the data into the ventes dictionary
+            for row in reader:
+                codeP, nom_produit, quantite = row
+                quantite = int(quantite)  # Convert quantity to integer
+                ventes[codeP] = quantite
+
+        print("Les données des ventes ont été chargées depuis 'ventes.csv'.")
+    except FileNotFoundError:
+        print("Le fichier 'ventes.csv' n'a pas été trouvé.")
+    except Exception as e:
+        print(f"Une erreur est survenue lors du chargement du fichier CSV : {e}")
+
+
 
 def menu_gerant():
     # Affiche le menu pour le gérant et permet de choisir une option
@@ -339,20 +397,20 @@ def menu_client():
             AfficherInformationProduit()
         elif choix == '2':
             CAC = input("\nEntrer le CAC: ")
-            if CAC not in client.values(): 
+            if CAC not in client: 
                 print("\nErreur : Le client n'existe pas.")
             else:
-                AjouterPannier(CAC)
+                AjouterPanier(CAC)
 
         elif choix == '3':
             CAC = input("\nEntrer le CAC: ")
-            if CAC not in client.values(): 
+            if CAC not in client: 
                 print("\nErreur : Le client n'existe pas.")
             else:
-                RetirerPannier(CAC)
+                RetirerPanier(CAC)
         elif choix == '4':
             CAC = input("\nEntrer le CAC: ")
-            if CAC not in client.values(): 
+            if CAC not in client: 
                 print("\nErreur : Le client n'existe pas.")
             else:
                 Achat(CAC)
@@ -380,4 +438,6 @@ def program_principal():
         else:
             print("Choix invalide. Veuillez réessayer.")
 
+charger_donnees()
+charger_FichierCSV()
 program_principal()
