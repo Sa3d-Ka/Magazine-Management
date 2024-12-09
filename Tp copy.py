@@ -11,10 +11,15 @@ pannier = {}
 
 def AjouterProduit():
     # Demande d'informations pour un nouveau produit et ajout au dictionnaire
-    codeP = input("\nEntrer code produit: ")
-    nom = input("Entrer nom de produit: ")
-    prix = float(input("Entrer le prix de produit: "))
-    quantite = int(input("Entrer la quantite de produit: "))
+    global dernier_code_produit
+
+    # Génère un nouveau code produit
+    dernier_code_produit += 1
+    codeP = dernier_code_produit
+
+    nom = input("Entrer le nom du produit: ")
+    prix = float(input("Entrer le prix du produit: "))
+    quantite = int(input("Entrer la quantité du produit: "))
     
     produit[codeP] = {
         "Nom": nom,
@@ -252,6 +257,27 @@ def charger_clients():
         print("Aucun fichier client.csv trouvé, création d'un nouveau fichier...")
     except Exception as e:
         print(f"Erreur lors du chargement des clients : {e}")
+
+dernier_code_produit = 0  # Dernier code produit utilisé (incrémental)
+
+def charger_produits():
+    """Charge les produits depuis un fichier CSV et met à jour le dernier code produit."""
+    global dernier_code_produit
+    try:
+        with open('produit.csv', mode='r', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            next(reader)  # Ignore la ligne d'en-tête
+            for row in reader:
+                codeP, nom, prix, quantite = row
+                produit[int(codeP)] = {
+                    "Nom": nom,
+                    "Prix": float(prix),
+                    "Quantite": int(quantite)
+                }
+                dernier_code_produit = max(dernier_code_produit, int(codeP))
+        print("Produits chargés avec succès.")
+    except FileNotFoundError:
+        print("Fichier produit.csv introuvable. Démarrage avec une liste vide.")
 
 def menu_gerant():
     # Affiche le menu pour le gérant et permet de choisir une option
