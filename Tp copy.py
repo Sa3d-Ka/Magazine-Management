@@ -129,6 +129,7 @@ def AjouterPannier(CAC):
 
     # Réduit la quantité de produit en stock après l'ajout au panier
     produit[codeP]['Quantite'] -= quantiteS
+    exporter_donnees_pannier()
 
 def RetirerPannier(CAC):
     # Permet au client de retirer un produit de son panier
@@ -150,6 +151,7 @@ def RetirerPannier(CAC):
             print("\nProduit retiré du panier car la quantité est maintenant zéro.")
     else:
         print("\nErreur : La quantité à retirer dépasse la quantité dans le panier.")
+    exporter_donnees_pannier()
 
 def Achat(CAC):
     # Permet au client d'acheter les produits dans son panier
@@ -167,6 +169,8 @@ def Achat(CAC):
     print(f"Quantité: {client_info['QuantiteS']}")
     print(f"Total: {total:.2f} MAD")
     print("==========================\n")
+    del pannier[CAC]
+    exporter_donnees_pannier()
 
 def genererCAC(prenom):
     # Génère un code client unique à partir du prénom
@@ -195,6 +199,8 @@ def exporter_donnees():
             writer.writerow([numCl, CAC])
     print("Les données des clients ont été exportées avec succès.")
 
+def exporter_donnees_pannier():
+    # Exporte les données des paniers vers des fichiers CSV
     with open('pannier.csv', mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(['CAC', 'Nom', 'Code Produit', 'Prix', 'QuantiteS'])
