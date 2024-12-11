@@ -33,10 +33,3 @@ Ce projet est un système de gestion de magasin développé en Python. Il permet
 
 - Python 3.x
 - Bibliothèque `csv` pour la gestion des fichiers CSV
-
-## Installation
-
-1. Clonez ce dépôt sur votre machine locale :
-
-   ```bash
-   git clone https://github.com/username/gestion-magasin.git
